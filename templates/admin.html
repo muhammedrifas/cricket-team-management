@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin</title>
+    <script lang="javascript">
+    function onLoad(){
+        //check if access_token cookie is set -->
+        if (!getCookie("access_token")){
+            //if not, advancing to /login page
+            window.location.href = "/login";
+        }else{
+            //creating a request to /token_validation/ to validate jwt token
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/token_validation", true);
+            xhr.setRequestHeader("Authorization", getCookie("access_token"));
+            //send the request -->
+            xhr.send();
+            //when the request is complete, check if response is valid -->
+            xhr.onreadystatechange = function() {
+                if(xhr.readyState == XMLHttpRequest.DONE){
+                    //if status code is not 200, redirect to /login page -->
+                    if (xhr.status != 200){
+                        window.location.href = "/login";
+                    }
+                }
+            }
+        }
+    }
+
+
+    //create a function to fetch cookie of given name
+    function getCookie(cname) {
+      let name = cname + "=";
+      let decodedCookie = decodeURIComponent(document.cookie);
+      let ca = decodedCookie.split(';');
+      for(let i = 0; i <ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+          c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+          return c.substring(name.length, c.length);
+        }
+      }
+      return undefined;
+    }
+
+    function createGame(){
+        //fetch date from date id
+        var date = document.getElementById("date").value;
+        //send an http request to the server at /users
+        var xhr = new XMLHttpRequest();
+        xhr.open("PUT", "/game/"+date, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        //also set access token as authorization header
+        xhr.setRequestHeader("Authorization", getCookie("access_token"));
+        //define a json object in which key="players", value=array of names selected in checkbox group 'selectPlayers'
+        var json = {};
+        json.players = [];
+        var checkboxes = document.getElementsByName("selectPlayers");
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (checkboxes[i].checked) {
+                json.players.push(checkboxes[i].value);
+            }
+        }
+
+        //send the request
+        xhr.send(JSON.stringify(json));
+        //when the request is complete, check if response is valid
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == XMLHttpRequest.DONE){
+                var response = JSON.parse(xhr.responseText);
+                alert(response.message);
+            }
+
+        }
+    }
+
+    function finishGame(){
+        //fetch date from date id
+        var date = document.getElementById("date_finish").value;
+        //fetch cost from cost id as float
+        var cost = parseFloat(document.getElementById("cost").value);
+        //send an http request to the server at /game/date
+        var xhr = new XMLHttpRequest();
+        xhr.open("PATCH", "/game/"+date, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        //also set access token as authorization header
+        xhr.setRequestHeader("Authorization", getCookie("access_token"));
+        //define a json object in which key="cost", value=cost
+        var json = {};
+        json.cost = cost;
+        //send the request
+        xhr.send(JSON.stringify(json));
+        //when the request is complete, check if response is valid
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == XMLHttpRequest.DONE){
+            if(xhr.status == 200){
+                alert("done!");
+            }else{
+                var response = JSON.parse(xhr.responseText);
+                alert(response.message);
+            }
+           }
+
+        }
+    }
+
+    function deleteGame(){
+        //fetch date from date id
+        var date = document.getElementById("date_delete").value;
+        //send an http request to the server at /game/date
+        var xhr = new XMLHttpRequest();
+        xhr.open("DELETE", "/game/"+date, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        //also set access token as authorization header
+        xhr.setRequestHeader("Authorization", getCookie("access_token"));
+        //send the request
+        xhr.send();
+        //when the request is complete, check if response is valid
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == XMLHttpRequest.DONE){
+                var response = JSON.parse(xhr.responseText);
+                alert(response.message);
+            }
+
+        }
+    }
+
+    function createPlayer(){
+        var name=document.getElementById("name").value;
+        if(name != ""){
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/user/"+name, true);
+            //also set access token as authorization header
+            xhr.setRequestHeader("Authorization", getCookie("access_token"));
+            xhr.send();
+            xhr.onreadystatechange = function() {
+                if(xhr.readyState == XMLHttpRequest.DONE){
+                    var response = JSON.parse(xhr.responseText);
+                    alert(response.message);
+                }
+
+            }
+        }
+    }
+
+    function updateBalance(){
+        var name=document.getElementById("playername_update_bal").value;
+        var amount=parseFloat(document.getElementById("amount_update_bal").value);
+        if(name != ""){
+            var xhr = new XMLHttpRequest();
+            xhr.open("PATCH", "/user/"+name, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            //also set access token as authorization header
+            xhr.setRequestHeader("Authorization", getCookie("access_token"));
+            xhr.send(JSON.stringify({"amount": amount}));
+            xhr.onreadystatechange = function() {
+                if(xhr.readyState == XMLHttpRequest.DONE){
+                    var response = JSON.parse(xhr.responseText);
+                    alert(response.message);
+                }
+
+            }
+        }
+    }
+
+    function requestCSV(){
+               //request CSV file from server
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", "/csv/", true);
+                xhr.send();
+                xhr.onreadystatechange = function() {
+                    if(xhr.readyState == XMLHttpRequest.DONE){
+                        var response = JSON.parse(xhr.responseText);
+                        if (response.csv) {
+                            //display CSV file in textarea
+                            document.getElementById("csv_data").innerHTML = response.csv;
+                        }
+                    }
+                }
+            }
+
+
+
+
+    </script>
+
+</head>
+<body onload="onLoad();">
+
+<form onsubmit="createGame();" class="generic" action="javascript:void(0)">
+    <!-- define a label and text field for entering match date / title -->
+    <label for="date">Date</label><br>
+    <input type="date" id="date" name="date" required><br>
+    <label>Select Players</label><br>
+    <!-- define a checkbox group with id: selectPlayers for selecting players -->
+    <checkbox-group id="selectPlayers">
+        <!-- make a request to /users/ to fetch all players-->
+        <script lang="javascript">
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", "/users/", true);
+            xhr.send();
+            xhr.onreadystatechange = function() {
+                if(xhr.readyState == XMLHttpRequest.DONE){
+                    var response = JSON.parse(xhr.responseText);
+                    if (response.users) {
+                        //go through each user and add a checkbox for each player -->
+                        for (var i = 0; i < response.users.length; i++) {
+                            document.getElementById("selectPlayers").innerHTML += "<input type=\"checkbox\" name=\"" +
+                            "selectPlayers" + "\" value=\"" + response.users[i].name + "\" checked>" + response.users[i].name + "<br>";
+                        }
+
+                    }
+                }
+            }
+
+
+
+        </script>
+
+    </checkbox-group>
+
+
+    <br><input type="submit" value="Create/Update Match" class="redBtn">
+</form>
+
+<form onsubmit="finishGame();" class="generic" action="javascript:void(0)">
+    <label for="date_finish">Date</label><br>
+    <input type="date" id="date_finish" name="date" required><br>
+    <label>Enter cost per person:</label><br>
+    <input type="number" id="cost" name="cost" required><br>
+    <br><input type="submit" value="Finish Match" class="redBtn">
+</form>
+
+<form onsubmit="deleteGame();" class="generic" action="javascript:void(0)">
+    <label for="date_delete">Date</label><br>
+    <input type="date" id="date_delete" name="date" required><br>
+    <br><input type="submit" value="Delete Match" class="redBtn">
+</form>
+
+<form onsubmit="createPlayer();" class="generic" action="javascript:void(0)">
+    <label for="name">Player Name</label><br>
+    <input type="text" id="name" name="name" required><br>
+    <br><input type="submit" value="Add Player" class="redBtn">
+</form>
+
+<form onsubmit="updateBalance();" class="generic" action="javascript:void(0)">
+    <label for="playername_update_bal">Player Name</label><br>
+    <input type="text" id="playername_update_bal" name="name" required><br>
+    <label for="amount_update_bal">Amount to add/deduct</label><br>
+    <input type="number" id="amount_update_bal" name="amount" required><br>
+    <br><input type="submit" value="Update Balance" class="redBtn">
+</form>
+
+<div>
+    <!-- define a button to request for csv file -->
+    <!-- define a text area to display the csv data -->
+    <textarea id="csv_data" rows="10" cols="50"></textarea><br>
+    <button onclick="requestCSV();" class="redBtn">Download CSV</button>
+
+</div>
+
+<style>
+    .generic {
+	background-color:#ffffff;
+	border:1px solid #dcdcdc;
+	display:inline-block;
+	cursor:pointer;
+	color:#000000;
+	font-family:Arial;
+	font-size:14px;
+	padding:10px 10px 10px 10px;
+	text-decoration:none;
+}
+
+.generic label {
+    font-weight: bold;
+}
+
+
+
+.redBtn {
+	box-shadow:inset 0px 1px 0px 0px #cf866c;
+	background:linear-gradient(to bottom, #d0451b 5%, #bc3315 100%);
+	background-color:#d0451b;
+	border-radius:15px;
+	border:1px solid #942911;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:16px;
+	padding:6px 10px;
+	text-decoration:none;
+}
+.redBtn:hover {
+	background:linear-gradient(to bottom, #bc3315 5%, #d0451b 100%);
+	background-color:#bc3315;
+}
+.redBtn:active {
+	position:relative;
+	top:1px;
+}
+
+
+</style>
+</body>
+</html>

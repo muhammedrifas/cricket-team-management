@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Players & Matches</title>
+
+
+<script lang="javascript">
+    function authenticate(){
+        //prompt for username and password
+        var username = prompt("username");
+        var password = prompt("password");
+        //send an http request to the server at /auth
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/auth", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        //send the request
+        xhr.send(JSON.stringify({"username": username, "password": password}));
+        //when the request is complete, check if response is valid
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == XMLHttpRequest.DONE){
+                var response = JSON.parse(xhr.responseText);
+                if (response.access_token) {
+                    //store response.access_token in a cookie
+                    document.cookie = "access_token= JWT " + response.access_token;
+                    document.getElementById("output").innerHTML = "authenticated";
+                }else{
+                    document.getElementById("output").innerHTML = "authentication failed";
+                }
+            }
+
+        }
+    }
+
+    //create a function to fetch cookie of given name
+    function getCookie(name) {
+        var value = "; " + document.cookie;
+        var parts = value.split("; " + name + "=");
+        if (parts.length == 2) return parts.pop().split(";").shift();
+    }
+
+
+    function listPlayers(){
+        //send an http request to the server at /users
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/users/", true);
+        //xhr.setRequestHeader("Authorization", getCookie("access_token"));
+        //send the request
+        xhr.send();
+        //when the request is complete, check if response is valid
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == XMLHttpRequest.DONE){
+                var response = JSON.parse(xhr.responseText);
+                if (response.users) {
+                    //display the response in the output space
+                    var output = "<table class=\"redTable\"><thead><tr><th>NAME</th><th>BALANCE</th></tr></thead><tbody>";
+                    for (var i = 0; i < response.users.length; i++) {
+                        output += "<tr><td>" + response.users[i].name + "</td><td>"
+                        + response.users[i].balance + "</td></tr>";
+                    }
+                    output += "</tbody></table>";
+                    //alert(output);
+                    document.getElementById("output").innerHTML = output;
+                }else{
+                    document.getElementById("output").innerHTML = "operation failed";
+                }
+            }
+
+        }
+    }
+
+    function listGames(){
+        //send an http request to the server at /games
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "/games/", true);
+        xhr.send();
+        //when the request is complete, check if response is valid
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == XMLHttpRequest.DONE){
+                var response = JSON.parse(xhr.responseText);
+
+                if (response.games) {
+                    var output="<table class=\"dateItem\">";
+                    for (var i = 0; i < response.games.length; i++) {
+                        output += "<tr><td class=\"tdstyle\">Date: <br>" + response.games[i].date+"</td><td><table><tr>";
+                        for(var j=0;j<response.games[i].players.length;j++){
+                            output+="<td class=\"playerItem\">"+response.games[i].players[j].name+"</td>";
+                        }
+                        output+= "</tr></table></tr>";
+                    }
+                    output+= "</table>";
+
+                    document.getElementById("output").innerHTML = output;
+                }else{
+                    document.getElementById("output").innerHTML = "no game found";
+                }
+            }
+
+        }
+    }
+
+
+</script>
+
+</head>
+<body>
+
+
+
+<!-- define a button for listing all players -->
+<button id="list-players-button" class="greenBtn" onclick="listPlayers();" >Players</button>
+<!-- define a button for listing a game -->
+<button id="list-game-button" class="greenBtn" onclick="listGames();">Matches</button>
+
+
+
+<!-- define a 500x300 space for displaying output -->
+<div id="output" style="width: 100%; height: 100%; min-height:300px; padding:10px 10px 10px 10px;">
+
+</div>
+
+
+<!-- define css code for all tables -->
+<style>
+
+table.redTable {
+  background:linear-gradient(to bottom, #ffffff 5%, #f6f6f6 100%);
+	background-color:#ffffff;
+	border:1px solid #dcdcdc;
+  width: 100%;
+  text-align: center;
+  border-collapse: collapse;
+}
+table.redTable td, table.redTable th {
+  border: 1px solid #AAAAAA;
+  padding: 3px 2px;
+}
+table.redTable tbody td {
+  font-size: 16px;
+}
+table.redTable tr:nth-child(even) {
+  background: #F5C8BF;
+}
+table.redTable thead {
+  background: #A40808;
+}
+table.redTable thead th {
+  font-size: 19px;
+  font-weight: bold;
+  color: #FFFFFF;
+  text-align: center;
+  border-left: 2px solid #A40808;
+}
+table.redTable thead th:first-child {
+  border-left: none;
+}
+
+table.redTable tfoot {
+  font-size: 13px;
+  font-weight: bold;
+  color: #FFFFFF;
+  background: #A40808;
+}
+table.redTable tfoot td {
+  font-size: 13px;
+}
+table.redTable tfoot .links {
+  text-align: right;
+}
+table.redTable tfoot .links a{
+  display: inline-block;
+  background: #FFFFFF;
+  color: #A40808;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
+table.blueTable {
+  border: 2px solid #A40808;
+  background-color: #EEE7DB;
+  width: 100%;
+  text-align: center;
+  border-collapse: collapse;
+}
+
+.greenBtn {
+	background:linear-gradient(to bottom, #44c767 5%, #5cbf2a 100%);
+	background-color:#44c767;
+	border-radius:15px;
+	border:1px solid #18ab29;
+	display:inline-block;
+	cursor:pointer;
+	color:#000000;
+	font-family:Arial;
+	font-size:16px;
+	padding:6px 10px;
+	text-decoration:none;
+}
+.greenBtn:active {
+	position:relative;
+	top:1px;
+}
+
+.redBtn {
+	box-shadow:inset 0px 1px 0px 0px #cf866c;
+	background:linear-gradient(to bottom, #d0451b 5%, #bc3315 100%);
+	background-color:#d0451b;
+	border-radius:15px;
+	border:1px solid #942911;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:16px;
+	padding:6px 10px;
+	text-decoration:none;
+}
+.redBtn:hover {
+	background:linear-gradient(to bottom, #bc3315 5%, #d0451b 100%);
+	background-color:#bc3315;
+}
+.redBtn:active {
+	position:relative;
+	top:1px;
+}
+
+.playerItem {
+	box-shadow:inset 0px 1px 0px 0px #ffffff;
+	background:linear-gradient(to bottom, #ffffff 5%, #f6f6f6 100%);
+	background-color:#ffffff;
+	border-radius:6px;
+	border:1px solid #dcdcdc;
+	display:inline-block;
+	cursor:pointer;
+	color:#000000;
+	font-family:Arial;
+	font-size:15px;
+	padding:10px 10px 10px 10px;
+	text-decoration:none;
+	margin:5px;
+}
+
+.playerItem:hover {
+	background:linear-gradient(to bottom, #f6f6f6 5%, #ffffff 100%);
+	background-color:#f6f6f6;
+}
+.playerItem:active {
+	position:relative;
+	top:1px;
+}
+
+.dateItem {
+	background-color:#ffffff;
+	border:1px solid #dcdcdc;
+	display:inline-block;
+	cursor:pointer;
+	color:#000000;
+	font-family:Arial;
+	font-size:16px;
+	font-weight:bold;
+	padding:9px 26px;
+	text-decoration:none;
+}
+
+.dateItem table {
+    border:1px solid #dcdcdc;
+    padding:20px 20px 20px 20px;
+    width:100%;
+    min-height:100px;
+    margin:10px;
+    background-color:#A40808;
+
+}
+
+.tdstyle{
+    width:100px;
+
+    background:linear-gradient(to bottom, #44c767 5%, #5cbf2a 100%);
+	background-color:#44c767;
+	padding:20px 20px 20px 20px;
+}
+
+</style>
+</body>
+</html>

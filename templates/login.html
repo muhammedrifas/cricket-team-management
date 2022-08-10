@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+    <script>
+        function authenticate(){
+        //fetch username and password from form with id=uname and pwd
+        var username = document.getElementById("uname").value;
+        var password = document.getElementById("pwd").value;
+        //send an http request to the server at /auth
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/auth", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        //send the request
+        xhr.send(JSON.stringify({"username": username, "password": password}));
+        //when the request is complete, check if response is valid
+        xhr.onreadystatechange = function() {
+            if(xhr.readyState == XMLHttpRequest.DONE){
+                var response = JSON.parse(xhr.responseText);
+                if (response.access_token) {
+                    //store response.access_token in a cookie with expiry date of 2 days on path /
+                    var date = new Date();
+                    date.setDate(date.getDate() + 2);
+                    document.cookie = "access_token= JWT " + response.access_token + "; expires=" + date.toUTCString()+ "; path=/";
+                    //advancing to /admin page
+                    window.location.href = "/admin";
+                }else{
+                    alert("authentication failed");
+                }
+            }
+
+        }
+    }
+    </script>
+</head>
+<body>
+    <h1>Admin Login</h1>
+    <form action="javascript:void(0);" onsubmit="authenticate();" class="generic">
+        <input type="text" name="username" placeholder="username" id="uname">
+        <input type="password" name="password" placeholder="password" id="pwd">
+        <input type="submit" value="Login">
+    </form>
+
+</body>
+<style>
+    .generic {
+	background-color:#ffffff;
+	border:1px solid #dcdcdc;
+	display:inline-block;
+	cursor:pointer;
+	color:#000000;
+	font-family:Arial;
+	font-size:14px;
+	padding:10px 10px 10px 10px;
+	text-decoration:none;
+}
+</style>
+
+</html>

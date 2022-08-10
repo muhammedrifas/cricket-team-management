@@ -1,0 +1,5 @@
+test.txt
+__pycache__/
+*.pyc
+create_db.py
+view_db.py
