@@ -4,7 +4,6 @@ from db import db
 from flask_restful import Resource, reqparse
 from flask_jwt import jwt_required
 from resources.user import UserModel
-import json
 
 from sqlalchemy.ext.mutable import MutableList
 
@@ -44,9 +43,10 @@ class GameModel(db.Model):
 
     def refresh_players(self):
         if self.players:
-            ids = [player.id for player in self.players]
-            for i in range(len(ids)):
-                self.players[i] = UserModel.find_by_id(ids[i])
+            names = [player.name for player in self.players]
+            for i in range(len(names)):
+                self.players[i] = UserModel.find_by_name(names[i])
+            self.players = [player for player in self.players if player]
             self.save()
 
     @classmethod
