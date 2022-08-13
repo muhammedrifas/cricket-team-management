@@ -37,12 +37,13 @@ class UserModel(db.Model):
         }
 
     def __init__(self, name, balance=0.0):
-        self.name = name
+        self.name = name.lower()
         self.balance = balance
         self.played_games_ids = None
 
     @classmethod
     def find_by_name(cls, name):
+        name = name.lower()
         return cls.query.filter_by(name=name).first()
 
     @classmethod
