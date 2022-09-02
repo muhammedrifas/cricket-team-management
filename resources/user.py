@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, render_template
 
 from db import db
 from flask_restful import Resource, reqparse
@@ -62,7 +62,7 @@ class UserResource(Resource):
     def get(self, name):
         user = UserModel.find_by_name(name)
         if user:
-            return user.json()
+            return user.json(), 200
         return {'message': 'User not found'}, 404
 
     @jwt_required()

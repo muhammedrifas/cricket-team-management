@@ -183,6 +183,95 @@
             }
 
 
+    function uploadImages()
+{
+    document.getElementById("progress").innerHTML = "uploaded: 0";
+    let uploaded=0;
+    // looping through each selected file in the form with id: imgUpload
+    for (var i = 0; i < document.getElementById("imgUpload").files.length; i++) {
+        //alert("one");
+        // fetching multipart form data from input option with id: imgUpload
+        let formData = new FormData();
+        // include file chosen into form data with key: "media"
+        formData.append("media", document.getElementById("imgUpload").files[i]);
+        // add "00001db5c2df49f4e81645e960b5b991" as api key
+        formData.append("key", "00001db5c2df49f4e81645e960b5b991");
+        // send an http request to "https://thumbsnap.com/api/upload" with the
+        // form data
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "https://thumbsnap.com/api/upload", true);
+        xhr.send(formData);
+
+        xhr.onreadystatechange = function()
+        {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                var status = xhr.status;
+                if (status == 200) {
+                    //alert("Image uploaded to thumbsnap successfully! updating database..");
+                    uploaded++;
+                    let response = JSON.parse(xhr.responseText);
+                    let name = response.data.id;
+                    let media = response.data.media;
+                    let thumb = response.data.thumb;
+                    let xhr2 = new XMLHttpRequest();
+                    xhr2.open("POST", "/gallery/", true);
+                    xhr2.setRequestHeader("Content-Type", "application/json");
+                    xhr2.send(JSON.stringify(
+                        { "name":name, "media_url" : media, "thumb_url" : thumb }));
+                    xhr2.onreadystatechange = function()
+                    {
+                        if (xhr2.readyState == XMLHttpRequest.DONE) {
+                            let response2 = JSON.parse(xhr2.responseText);
+                            document.getElementById("progress").innerHTML = "uploaded: "+uploaded;
+                        }
+                    }
+                } else {
+                    alert("Image upload failed!");
+                }
+            }
+        }
+    }
+}
+
+function uploadUserAvatar()
+{
+        let formData = new FormData();
+        // include file chosen into form data with key: "media"
+        formData.append("media", document.getElementById("avatarUpload").files[0]);
+        formData.append("key", "00001db5c2df49f4e81645e960b5b991");
+        let xhr = new XMLHttpRequest();
+        xhr.open("POST", "https://thumbsnap.com/api/upload", true);
+        xhr.send(formData);
+        //handle finish response
+        xhr.onreadystatechange = function()
+        {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+                var status = xhr.status;
+                if (status == 200) {
+                    let response = JSON.parse(xhr.responseText);
+                    let name = document.getElementById("avatarName").value;
+                    let media = response.data.media;
+                    let thumb = response.data.thumb;
+                    let xhr2 = new XMLHttpRequest();
+                    xhr2.open("POST", "/userimages/"+name, true);
+                    xhr2.setRequestHeader("Content-Type", "application/json");
+                    xhr2.send(JSON.stringify(
+                        { "name":name, "media_url" : media, "thumb_url" : thumb }));
+                    xhr2.onreadystatechange = function()
+                    {
+                        if (xhr2.readyState == XMLHttpRequest.DONE) {
+                            let response2 = JSON.parse(xhr2.responseText);
+                            alert(response2.message);
+                        }
+                    }
+                } else {
+                    alert("Image upload failed!");
+                }
+            }
+        }
+
+}
+
 
 
     </script>
@@ -215,6 +304,7 @@
                     }
                 }
             }
+
 
 
 
@@ -262,6 +352,22 @@
 
 </div>
 
+<div>
+<form action="javascript:void();" method="post" enctype="multipart/form-data" onsubmit="uploadImages();" class="generic">
+    <input id="imgUpload" type="file" name="image" required multiple><br>
+    <input type="submit" value="Upload Gallery Images" class="redBtn"/><br>
+    <label id="progress"></label><br>
+</form>
+</div>
+
+<div>
+<form action="javascript:void();" method="post" enctype="multipart/form-data" onsubmit="uploadUserAvatar();" class="generic">
+    <input id="avatarUpload" type="file" name="image" required><br>
+    <label>Player Name</label><br>
+    <input id="avatarName" type="text" required><br>
+    <input type="submit" value="Upload User Avatar" class="redBtn"/><br>
+</form>
+</div>
 <style>
     .generic {
 	background-color:#ffffff;
@@ -303,6 +409,7 @@
 	position:relative;
 	top:1px;
 }
+
 
 
 </style>

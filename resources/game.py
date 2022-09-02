@@ -10,6 +10,17 @@ from sqlalchemy.ext.mutable import MutableList
 pickle_type = MutableList.as_mutable(db.PickleType())
 
 
+# function to convert a date in yyyy-dd-mm to dd-MMM-yyyy format
+def convert_date(date):
+    dateArray = date.split("-");
+    day = dateArray[2]
+    month = int(dateArray[1])
+    year = dateArray[0]
+    monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    return str(day) + " " + monthNames[month - 1] + " " + str(year)
+
+
 class GameModel(db.Model):
     __tablename__ = 'games'
     id = db.Column(db.Integer, primary_key=True)

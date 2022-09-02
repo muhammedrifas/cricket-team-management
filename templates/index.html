@@ -28,8 +28,8 @@
                     document.getElementById("output").innerHTML = "authentication failed";
                 }
             }
-
         }
+
     }
 
     //create a function to fetch cookie of given name
@@ -41,58 +41,32 @@
 
 
     function listPlayers(){
-        //send an http request to the server at /users
+        document.getElementById("output").innerHTML = "";
+        //send an http request to the server at /players
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", "/users/", true);
+        xhr.open("GET", "/players/", true);
         //xhr.setRequestHeader("Authorization", getCookie("access_token"));
         //send the request
         xhr.send();
         //when the request is complete, check if response is valid
         xhr.onreadystatechange = function() {
             if(xhr.readyState == XMLHttpRequest.DONE){
-                var response = JSON.parse(xhr.responseText);
-                if (response.users) {
-                    //display the response in the output space
-                    var output = "<table class=\"redTable\"><thead><tr><th>NAME</th><th>BALANCE</th></tr></thead><tbody>";
-                    for (var i = 0; i < response.users.length; i++) {
-                        output += "<tr><td>" + response.users[i].name.toUpperCase() + "</td><td>"
-                        + response.users[i].balance + "</td></tr>";
-                    }
-                    output += "</tbody></table>";
-                    //alert(output);
-                    document.getElementById("output").innerHTML = output;
-                }else{
-                    document.getElementById("output").innerHTML = "operation failed";
-                }
+                //set response text as innerHTML of output element
+                document.getElementById("output").innerHTML = xhr.responseText;
             }
-
         }
+
     }
 
     function listGames(){
         //send an http request to the server at /games
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", "/games/", true);
+        xhr.open("GET", "/games_html/", true);
         xhr.send();
         //when the request is complete, check if response is valid
         xhr.onreadystatechange = function() {
             if(xhr.readyState == XMLHttpRequest.DONE){
-                var response = JSON.parse(xhr.responseText);
-
-                if (response.games) {
-                    var output="";
-                    for (var i = 0; i < response.games.length; i++) {
-                        output += "<div class=\"matches_data_container\"><h3>Date: " + convertDate(response.games[i].date)+"</h3><ul>";
-                        for(var j=0;j<response.games[i].players.length;j++){
-                            output+="<li >"+response.games[i].players[j].name.toUpperCase()+"</li>";
-                        }
-                        output+= "</ul></div>";
-                    }
-
-                    document.getElementById("output").innerHTML = output;
-                }else{
-                    document.getElementById("output").innerHTML = "no game found";
-                }
+                document.getElementById("output").innerHTML = xhr.responseText;
             }
 
         }
@@ -131,7 +105,7 @@
   </div>
 
   <div class="nav-links">
-    <a href="#" onClick="_blank">Home</a>
+    <a href="/">Home</a>
     <a href="#" onClick="javascript:listPlayers()">Players</a>
     <a href="#" onClick="javascript:listGames()">Matches</a>
   </div>
@@ -373,7 +347,8 @@ body {
   font-family: 'segoe ui';
   background-image: url("https://img.mensxp.com/media/content/2019/Aug/kohli-miandad-embed2-1565537806.jpg");
     background-repeat: no-repeat;
-    background-size: cover;
+    background-size: 100%;
+
 }
 
 .nav {
@@ -467,12 +442,13 @@ body {
 
 
 .contentpane{
-    //set image as background
 
-    width: 100%;
-    height: 100%;
+    width: auto;
+    height: 800px;
+    overflow: auto;
     min-height:300px;
     padding:10px 10px 10px 10px;
+
 }
 
 </style>
